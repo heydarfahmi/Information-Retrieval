@@ -26,7 +26,7 @@ def crawl_isna_page(url):
 def make_json(lists):
     result = []
     for row in lists:
-        dict = crawl_isna_page(row[1])
+        dict = crawl_isna_page(row[2])
         full_text = dict['header'] + "\n" + dict['summary'] + "\n" + dict["doc_text"]
 
         [row[0], full_text]

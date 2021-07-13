@@ -1,0 +1,6 @@
+venv/
+.idea/
+*.pkl
+*.xlsx*
+*.zip
+*/__pycache__/
