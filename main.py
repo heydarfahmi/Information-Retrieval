@@ -1,40 +1,46 @@
-from utils.tokenizer import Tokenizer
-from utils.normalizer import clean_word,clean_text
-t = Tokenizer('IR_Spring2021_ph12_7k.xlsx', 'test.pkl', False)
+from utils.tokenizer import Tokenizer, tokenize_doc
+from utils.sort import k_max
+from utils.vectors import (
+    vectorize_doc,
+    make_vector,
+    make_docs_vector,
+    cal_scores)
+
+t = Tokenizer('IR_Spring2021_ph12_7k.xlsx', 'test.pkl', True, True)
+
+
+def get_query_vector(query):
+    tokens = tokenize_doc(query)
+    tokens = vectorize_doc(tokens)
+    return make_vector(tokens)
 
 
 def get_query(query):
-
-    print(query)
-    query=clean_text(query)
-    sep_query=query.split()
-    query_words=[]
-    for any_word in sep_query:
-        words=clean_word(any_word)
-        for word in words:
-            if word in query_words:
-                continue
-            query_words.append(word)
-    if len(query_words) == 1:
-        if query_words[0] in t.tokens.keys():
-            return {d: t.urls[d - 1] for d in t.tokens[query_words[0]]}
+    tokens = tokenize_doc(query)
+    if len(tokens.keys()) == 1:
+        term = list(tokens.keys())[0]
+        print(term)
+        if term in t.tokens.keys():
+            return {d: t.urls[d - 1] for d in t.tokens[term]}
         else:
             return False
-    doc_scores = {}
-    for word in query_words:
-        if word in t.tokens:
-            doc_scores.update({d: doc_scores.get(d, 0)+1 for d in t.tokens[word]})
-    doc_scores = dict(sorted(doc_scores.items(), key=lambda item: item[1],reverse=True))
-    doc_scores={d:{"score":k,"url":t.urls[d-1]} for d,k in doc_scores.items()}
-    if len(doc_scores):
-        return doc_scores
+    query_vector = get_query_vector(query)
+    print(tokens)
+    print(query_vector)
+    docs_matrix = make_docs_vector(tokens, t.N, t.tokens)
+    scores = cal_scores(docs_matrix, query_vector)
+    print(scores)
+    best = k_max(list(scores), 10, 0)
+    url_best = {doc_ids: t.urls[doc_ids - 1] for doc_ids in best}
+    if len(url_best):
+        return url_best
     return False
 
 
 if __name__ == "__main__":
     print("input query")
     query = input()
-    result=get_query(query)
+    result = get_query(query)
     if result is False:
         print("NO DOC FOUND")
     else:
