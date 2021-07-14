@@ -6,7 +6,7 @@ from utils.vectors import (
     make_docs_vector,
     cal_scores)
 
-t = Tokenizer('IR_Spring2021_ph12_7k.xlsx', 'test.pkl', True, True)
+t = Tokenizer('IR_Spring2021_ph12_7k.xlsx', 'test.pkl', champion_list_size=10,update_post=False, vectorizing=True)
 
 
 def get_query_vector(query):
@@ -19,17 +19,13 @@ def get_query(query):
     tokens = tokenize_doc(query)
     if len(tokens.keys()) == 1:
         term = list(tokens.keys())[0]
-        print(term)
         if term in t.tokens.keys():
             return {d: t.urls[d - 1] for d in t.tokens[term]}
         else:
             return False
     query_vector = get_query_vector(query)
-    print(tokens)
-    print(query_vector)
     docs_matrix = make_docs_vector(tokens, t.N, t.tokens)
     scores = cal_scores(docs_matrix, query_vector)
-    print(scores)
     best = k_max(list(scores), 10, 0)
     url_best = {doc_ids: t.urls[doc_ids - 1] for doc_ids in best}
     if len(url_best):

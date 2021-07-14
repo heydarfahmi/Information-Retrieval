@@ -23,11 +23,14 @@ def make_vector(tokens, arg="tf"):
         return normalize_vector(array)
 
 
-def make_docs_vector(query_tokens, N, all_tokens):
+def make_docs_vector(query_tokens, N, all_tokens, champion_list={}):
     score_matrix = numpy.zeros((N + 1, len(query_tokens)), dtype=numpy.float64)
     for column_id, token in enumerate(query_tokens):
         tf_idf_per_doc = all_tokens.get(token, {})
         for doc in tf_idf_per_doc:
+            if champion_list != {}:
+                if doc not in champion_list[token]:
+                    continue
             score_matrix[doc][column_id] = tf_idf_per_doc[doc]['tf_idf']
     return score_matrix
 
@@ -47,19 +50,18 @@ def vectorizing_docs(tokens, number_of_docs, docs_norms):
     for token in tokens:
         docs = tokens[token]
         idf = cal_idf(len(docs.keys()), number_of_docs)
-
-        docs = {doc_id: {"occur": occur_num, "tf_idf": cal_doc_tf(occur_num) * idf} for doc_id, occur_num in
-                docs}  # cal tf for docs
-
+        docs = {doc_id: {"occur": occur_num, "tf_idf": cal_doc_tf(occur_num) * idf} \
+                for doc_id, occur_num in docs.items()}  # cal tf for docs
         for doc_id in docs.keys():
-            docs_norms[doc_id] += (token[doc_id]['tfi_idf'] ** 2)
-        numpy.asarray(token["tf_idf"])
+            docs_norms[doc_id] += (docs[doc_id]['tf_idf'] ** 2)
 
         tokens[token] = docs
 
     for token in tokens:
         docs = tokens[token]
-        docs = {doc_id: {"occur": docs[doc_id]['occur'], "tf_idf": docs[doc_id] / math.sqrt(docs_norms[doc_id])}}
+        for doc_id in docs:
+            tf_idf = docs[doc_id]['tf_idf'] / math.sqrt(docs_norms[doc_id])
+            docs.update({doc_id: {"occur": docs[doc_id]['occur'], "tf_idf": tf_idf}})
         tokens[token] = docs
 
     return tokens
