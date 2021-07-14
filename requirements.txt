@@ -1,0 +1,12 @@
+beautifulsoup4==4.9.3
+bs4==0.0.1
+certifi==2021.5.30
+chardet==4.0.0
+et-xmlfile==1.1.0
+idna==2.10
+joblib==1.0.1
+numpy==1.19.5
+openpyxl==3.0.7
+requests==2.25.1
+soupsieve==2.2.1
+urllib3==1.26.5
